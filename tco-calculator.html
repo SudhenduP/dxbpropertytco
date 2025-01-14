@@ -10,7 +10,15 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #f0f8ff;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
         }
         .container {
             display: flex;
@@ -30,6 +38,7 @@
         }
         h1 {
             text-align: center;
+            color: #333;
         }
         label {
             font-weight: bold;
@@ -82,6 +91,7 @@
     </style>
 </head>
 <body>
+    <header>Property TCO Calculator</header>
     <div class="container">
         <div class="calculator">
             <h1>TCO Calculator</h1>
@@ -239,10 +249,10 @@
 
             // Create Pie Chart Data
             const chartData = {
-                labels: ["Upfront Costs", "Ongoing Costs"],
+                labels: ["Cost of Property", "Mortgage Interest Paid", "Other Charges"],
                 datasets: [{
-                    data: [upfrontCosts, ongoingCosts],
-                    backgroundColor: ["#007bff", "#28a745"],
+                    data: [propertyPrice, totalLoanRepayment, upfrontCosts - propertyPrice],
+                    backgroundColor: ["#007bff", "#28a745", "#ffc107"],
                 }]
             };
 
