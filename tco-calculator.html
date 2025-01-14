@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCO Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .calculator, .info {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        .info ul {
+            list-style-type: square;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <h1>TCO Calculator</h1>
+            <label for="propertyPrice">Property Price (AED):</label>
+            <input type="number" id="propertyPrice" placeholder="Enter property price">
+
+            <label for="loanTenure">Loan Tenure (Years):</label>
+            <input type="number" id="loanTenure" placeholder="Enter loan tenure">
+
+            <button onclick="calculateTCO()">Calculate TCO</button>
+
+            <div class="result" id="result"></div>
+        </div>
+
+        <div class="info">
+            <h1>Additional Information</h1>
+            <p>The Total Cost of Ownership (TCO) calculation includes the following components:</p>
+            <ul>
+                <li><strong>Property Price:</strong> The listed price of the property.</li>
+                <li><strong>Down Payment (20%):</strong> An upfront payment based on 20% of the property price.</li>
+                <li><strong>DLD Fee (4%):</strong> A fee paid to the Dubai Land Department for property registration.</li>
+                <li><strong>Other Fees:</strong> Miscellaneous costs like agency fees, NOC fees, and trustee fees (set at AED 5,000 in this calculator).</li>
+                <li><strong>Loan Interest:</strong> The interest paid over the loan tenure based on a 4.99% annual rate.</li>
+                <li><strong>Total Loan Repayment:</strong> The principal and interest combined, paid over the loan tenure.</li>
+                <li><strong>Monthly EMI:</strong> The Equated Monthly Installment calculated for the loan tenure.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function calculateTCO() {
+            const propertyPrice = parseFloat(document.getElementById('propertyPrice').value);
+            const loanTenure = parseFloat(document.getElementById('loanTenure').value);
+
+            if (isNaN(propertyPrice) || isNaN(loanTenure) || propertyPrice <= 0 || loanTenure <= 0) {
+                document.getElementById('result').innerHTML = '<p>Please enter valid inputs.</p>';
+                return;
+            }
+
+            // Constants
+            const interestRate = 4.99 / 100; // Annual interest rate
+            const upfrontCosts = {
+                downPayment: 0.2 * propertyPrice, // 20% down payment
+                dldFee: 0.04 * propertyPrice, // 4% DLD fee
+                otherFees: 5000 // Fixed other fees
+            };
+
+            const loanAmount = 0.8 * propertyPrice; // 80% loan amount
+            const monthlyInterestRate = interestRate / 12; // Monthly interest rate
+            const totalMonths = loanTenure * 12; // Total months
+
+            // EMI calculation (using standard EMI formula)
+            const emi = (loanAmount * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, totalMonths)) /
+                        (Math.pow(1 + monthlyInterestRate, totalMonths) - 1);
+
+            const totalLoanRepayment = emi * totalMonths; // Total repayment amount
+
+            // Total Cost of Ownership (TCO)
+            const totalTCO = upfrontCosts.downPayment + upfrontCosts.dldFee + upfrontCosts.otherFees + totalLoanRepayment;
+
+            // Display the results
+            document.getElementById('result').innerHTML = `
+                <h3>Results:</h3>
+                <p><strong>Property Price:</strong> AED ${propertyPrice.toLocaleString()}</p>
+                <p><strong>Down Payment (20%):</strong> AED ${upfrontCosts.downPayment.toLocaleString()}</p>
+                <p><strong>DLD Fee (4%):</strong> AED ${upfrontCosts.dldFee.toLocaleString()}</p>
+                <p><strong>Other Fees:</strong> AED ${upfrontCosts.otherFees.toLocaleString()}</p>
+                <p><strong>Monthly EMI:</strong> AED ${emi.toFixed(2).toLocaleString()}</p>
+                <p><strong>Total Loan Repayment:</strong> AED ${totalLoanRepayment.toLocaleString()}</p>
+                <p><strong>Total Cost of Ownership:</strong> AED ${totalTCO.toLocaleString()}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
