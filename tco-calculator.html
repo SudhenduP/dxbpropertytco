@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TCO Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,12 +19,12 @@
             justify-content: center;
             padding: 20px;
         }
-        .calculator, .info {
+        .calculator, .info, .chart {
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
+            max-width: 600px;
             width: 100%;
             margin-bottom: 20px;
         }
@@ -61,9 +62,22 @@
             background: #e9ecef;
             border-radius: 5px;
         }
-        .info ul {
-            list-style-type: square;
-            padding-left: 20px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        .chart {
+            text-align: center;
         }
     </style>
 </head>
@@ -72,7 +86,7 @@
         <div class="calculator">
             <h1>TCO Calculator</h1>
             <label for="propertyPrice">Property Price (AED):</label>
-            <input type="number" id="propertyPrice" placeholder="Enter property price">
+            <input type="text" id="propertyPrice" placeholder="Enter property price" oninput="formatInput(this)">
 
             <label for="loanTenure">Loan Tenure (Years):</label>
             <input type="number" id="loanTenure" placeholder="Enter loan tenure">
@@ -83,23 +97,36 @@
         </div>
 
         <div class="info">
-            <h1>Additional Information</h1>
-            <p>The Total Cost of Ownership (TCO) calculation includes the following components:</p>
-            <ul>
-                <li><strong>Property Price:</strong> The listed price of the property.</li>
-                <li><strong>Down Payment (20%):</strong> An upfront payment based on 20% of the property price.</li>
-                <li><strong>DLD Fee (4%):</strong> A fee paid to the Dubai Land Department for property registration.</li>
-                <li><strong>Other Fees:</strong> Miscellaneous costs like agency fees, NOC fees, and trustee fees (set at AED 5,000 in this calculator).</li>
-                <li><strong>Loan Interest:</strong> The interest paid over the loan tenure based on a 4.99% annual rate.</li>
-                <li><strong>Total Loan Repayment:</strong> The principal and interest combined, paid over the loan tenure.</li>
-                <li><strong>Monthly EMI:</strong> The Equated Monthly Installment calculated for the loan tenure.</li>
-            </ul>
+            <h1>Revised TCO Table</h1>
+            <table id="tcoTable">
+                <thead>
+                    <tr>
+                        <th>Cost Component</th>
+                        <th>Amount (AED)</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="chart">
+            <h1>Cost Distribution</h1>
+            <canvas id="tcoChart" width="400" height="400"></canvas>
         </div>
     </div>
 
     <script>
+        function formatInput(input) {
+            let value = input.value.replace(/,/g, '');
+            if (!isNaN(value) && value !== '') {
+                input.value = parseInt(value).toLocaleString();
+            }
+        }
+
         function calculateTCO() {
-            const propertyPrice = parseFloat(document.getElementById('propertyPrice').value);
+            const propertyPrice = parseFloat(document.getElementById('propertyPrice').value.replace(/,/g, ''));
             const loanTenure = parseFloat(document.getElementById('loanTenure').value);
 
             if (isNaN(propertyPrice) || isNaN(loanTenure) || propertyPrice <= 0 || loanTenure <= 0) {
@@ -108,14 +135,18 @@
             }
 
             // Constants
-            const interestRate = 4.99 / 100; // Annual interest rate
-            const upfrontCosts = {
-                downPayment: 0.2 * propertyPrice, // 20% down payment
-                dldFee: 0.04 * propertyPrice, // 4% DLD fee
-                otherFees: 5000 // Fixed other fees
-            };
+            const dldFee = 0.04 * propertyPrice; // 4% DLD fee
+            const registrationFee = 4200; // Fixed registration fee
+            const mortgageFee = 0.0025 * propertyPrice; // 0.25% mortgage fee
+            const agencyFee = 0.03 * propertyPrice; // 3% agency fee
+            const conveyancingFee = 8000; // Fixed conveyancing fee
+            const bankArrangementFee = 0.01 * propertyPrice; // 1% bank arrangement fee
+            const valuationFee = 3675; // Fixed valuation fee
+            const downPayment = 0.25 * propertyPrice; // 25% down payment
+            const upfrontCosts = downPayment + dldFee + registrationFee + mortgageFee + agencyFee + conveyancingFee + bankArrangementFee + valuationFee;
 
-            const loanAmount = 0.8 * propertyPrice; // 80% loan amount
+            const interestRate = 4.99 / 100; // Annual interest rate
+            const loanAmount = 0.75 * propertyPrice; // 75% loan amount
             const monthlyInterestRate = interestRate / 12; // Monthly interest rate
             const totalMonths = loanTenure * 12; // Total months
 
@@ -125,20 +156,101 @@
 
             const totalLoanRepayment = emi * totalMonths; // Total repayment amount
 
-            // Total Cost of Ownership (TCO)
-            const totalTCO = upfrontCosts.downPayment + upfrontCosts.dldFee + upfrontCosts.otherFees + totalLoanRepayment;
+            const lifeInsurance = 21600; // Fixed for 5 years
+            const homeInsurance = 5000; // Fixed for 5 years
+            const ongoingCosts = lifeInsurance + homeInsurance + totalLoanRepayment;
 
-            // Display the results
-            document.getElementById('result').innerHTML = `
-                <h3>Results:</h3>
-                <p><strong>Property Price:</strong> AED ${propertyPrice.toLocaleString()}</p>
-                <p><strong>Down Payment (20%):</strong> AED ${upfrontCosts.downPayment.toLocaleString()}</p>
-                <p><strong>DLD Fee (4%):</strong> AED ${upfrontCosts.dldFee.toLocaleString()}</p>
-                <p><strong>Other Fees:</strong> AED ${upfrontCosts.otherFees.toLocaleString()}</p>
-                <p><strong>Monthly EMI:</strong> AED ${emi.toFixed(2).toLocaleString()}</p>
-                <p><strong>Total Loan Repayment:</strong> AED ${totalLoanRepayment.toLocaleString()}</p>
-                <p><strong>Total Cost of Ownership:</strong> AED ${totalTCO.toLocaleString()}</p>
+            const totalTCO = upfrontCosts + ongoingCosts;
+
+            // Update the Revised TCO Table
+            const tableBody = document.querySelector('#tcoTable tbody');
+            tableBody.innerHTML = `
+                <tr>
+                    <td>Property Price</td>
+                    <td>${propertyPrice.toLocaleString()}</td>
+                    <td>The listed price of the property.</td>
+                </tr>
+                <tr>
+                    <td>DLD Fee (4%)</td>
+                    <td>${dldFee.toLocaleString()}</td>
+                    <td>A fee paid to the Dubai Land Department for property registration.</td>
+                </tr>
+                <tr>
+                    <td>Registration Fee</td>
+                    <td>${registrationFee.toLocaleString()}</td>
+                    <td>Government fee for registering the property.</td>
+                </tr>
+                <tr>
+                    <td>Mortgage Fee (0.25%)</td>
+                    <td>${mortgageFee.toLocaleString()}</td>
+                    <td>Fee charged for processing the mortgage application.</td>
+                </tr>
+                <tr>
+                    <td>Agency Fee (3%)</td>
+                    <td>${agencyFee.toLocaleString()}</td>
+                    <td>Broker commission for facilitating the property purchase.</td>
+                </tr>
+                <tr>
+                    <td>Conveyancing Fee</td>
+                    <td>${conveyancingFee.toLocaleString()}</td>
+                    <td>Legal fees for property transfer services.</td>
+                </tr>
+                <tr>
+                    <td>Bank Arrangement Fee (1%)</td>
+                    <td>${bankArrangementFee.toLocaleString()}</td>
+                    <td>Fee charged by the bank for setting up the mortgage.</td>
+                </tr>
+                <tr>
+                    <td>Valuation Fee</td>
+                    <td>${valuationFee.toLocaleString()}</td>
+                    <td>Fee for assessing the property value by the bank.</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Upfront Costs</strong></td>
+                    <td><strong>${upfrontCosts.toLocaleString()}</strong></td>
+                    <td>Total of all initial costs.</td>
+                </tr>
+                <tr>
+                    <td>Mortgage Interest (4.99%)</td>
+                    <td>${totalLoanRepayment.toLocaleString()}</td>
+                    <td>Interest paid over the loan tenure based on the mortgage rate.</td>
+                </tr>
+                <tr>
+                    <td>Life Insurance (5 years)</td>
+                    <td>${lifeInsurance.toLocaleString()}</td>
+                    <td>Insurance coverage for the borrower for five years.</td>
+                </tr>
+                <tr>
+                    <td>Home Insurance (5 years)</td>
+                    <td>${homeInsurance.toLocaleString()}</td>
+                    <td>Insurance for the property over five years.</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Ongoing Costs</strong></td>
+                    <td><strong>${ongoingCosts.toLocaleString()}</strong></td>
+                    <td>Total of all recurring costs over the loan tenure.</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Cost of Ownership</strong></td>
+                    <td><strong>${totalTCO.toLocaleString()}</strong></td>
+                    <td>The overall cost of owning the property.</td>
+                </tr>
             `;
+
+            // Create Pie Chart Data
+            const chartData = {
+                labels: ["Upfront Costs", "Ongoing Costs"],
+                datasets: [{
+                    data: [upfrontCosts, ongoingCosts],
+                    backgroundColor: ["#007bff", "#28a745"],
+                }]
+            };
+
+            const ctx = document.getElementById('tcoChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: chartData
+            });
         }
     </script>
 </body>
