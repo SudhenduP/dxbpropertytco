@@ -3,22 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TCO Calculator</title>
+    <title>Dubai Property Purchase: TCO Calculator</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f8ff;
-        }
-        header {
-            background-color: #007bff;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: bold;
+            background-color: #f4f4f4;
         }
         .container {
             display: flex;
@@ -38,7 +30,6 @@
         }
         h1 {
             text-align: center;
-            color: #333;
         }
         label {
             font-weight: bold;
@@ -91,7 +82,6 @@
     </style>
 </head>
 <body>
-    <header>Property TCO Calculator</header>
     <div class="container">
         <div class="calculator">
             <h1>TCO Calculator</h1>
@@ -100,6 +90,9 @@
 
             <label for="loanTenure">Loan Tenure (Years):</label>
             <input type="number" id="loanTenure" placeholder="Enter loan tenure">
+
+            <label for="interestRate">Mortgage Interest Rate (%):</label>
+            <input type="number" id="interestRate" placeholder="Enter mortgage interest rate">
 
             <button onclick="calculateTCO()">Calculate TCO</button>
 
@@ -138,8 +131,9 @@
         function calculateTCO() {
             const propertyPrice = parseFloat(document.getElementById('propertyPrice').value.replace(/,/g, ''));
             const loanTenure = parseFloat(document.getElementById('loanTenure').value);
+            const interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
 
-            if (isNaN(propertyPrice) || isNaN(loanTenure) || propertyPrice <= 0 || loanTenure <= 0) {
+            if (isNaN(propertyPrice) || isNaN(loanTenure) || isNaN(interestRate) || propertyPrice <= 0 || loanTenure <= 0 || interestRate <= 0) {
                 document.getElementById('result').innerHTML = '<p>Please enter valid inputs.</p>';
                 return;
             }
@@ -155,7 +149,6 @@
             const downPayment = 0.25 * propertyPrice; // 25% down payment
             const upfrontCosts = downPayment + dldFee + registrationFee + mortgageFee + agencyFee + conveyancingFee + bankArrangementFee + valuationFee;
 
-            const interestRate = 4.99 / 100; // Annual interest rate
             const loanAmount = 0.75 * propertyPrice; // 75% loan amount
             const monthlyInterestRate = interestRate / 12; // Monthly interest rate
             const totalMonths = loanTenure * 12; // Total months
@@ -221,7 +214,7 @@
                     <td>Total of all initial costs.</td>
                 </tr>
                 <tr>
-                    <td>Mortgage Interest (4.99%)</td>
+                    <td>Mortgage Interest (${(interestRate * 100).toFixed(2)}%)</td>
                     <td>${totalLoanRepayment.toLocaleString()}</td>
                     <td>Interest paid over the loan tenure based on the mortgage rate.</td>
                 </tr>
@@ -249,10 +242,10 @@
 
             // Create Pie Chart Data
             const chartData = {
-                labels: ["Cost of Property", "Mortgage Interest Paid", "Other Charges"],
+                labels: ["Upfront Costs", "Ongoing Costs"],
                 datasets: [{
-                    data: [propertyPrice, totalLoanRepayment, upfrontCosts - propertyPrice],
-                    backgroundColor: ["#007bff", "#28a745", "#ffc107"],
+                    data: [upfrontCosts, ongoingCosts],
+                    backgroundColor: ["#007bff", "#28a745"],
                 }]
             };
 
